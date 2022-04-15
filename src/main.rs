@@ -22,7 +22,7 @@ use std::{
 fn main() -> Result<(), Box<dyn Error>> {
     let mut audio = Audio::new();
 
-    for name in vec!["explode", "lose", "move", "pew", "startup", "win"] {
+    for name in &["explode", "lose", "move", "pew", "startup", "win"] {
         let path = &format!("audio/{name}.wav");
         audio.add(name, path);
     }
@@ -38,11 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut last_frame = frame::new_frame();
         let mut stdout = io::stdout();
         render(&mut stdout, &last_frame, &last_frame, true);
-        loop {
-            let current_frame = match render_rx.recv() {
-                Ok(x) => x,
-                Err(_) => break,
-            };
+        while let Ok(current_frame) = render_rx.recv() {
             render(&mut stdout, &last_frame, &current_frame, false);
             last_frame = current_frame
         }

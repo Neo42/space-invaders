@@ -111,3 +111,9 @@ impl Drawable for Invaders {
         }
     }
 }
+
+impl Default for Invaders {
+    fn default() -> Self {
+        Self::new()
+    }
+}
