@@ -10,7 +10,13 @@ use space_invaders::{
     player::Player,
     render::render,
 };
-use std::{error::Error, io, sync::mpsc, thread, time::Duration};
+use std::{
+    error::Error,
+    io,
+    sync::mpsc,
+    thread,
+    time::{Duration, Instant},
+};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut audio = Audio::new();
@@ -42,8 +48,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let mut player = Player::new();
+    let mut instant = Instant::now();
 
     'gameloop: loop {
+        let delta = instant.elapsed();
+        instant = Instant::now();
         let mut current_frame = new_frame();
 
         while event::poll(Duration::default())? {
@@ -51,6 +60,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 match key_event.code {
                     KeyCode::Left => player.move_left(),
                     KeyCode::Right => player.move_right(),
+                    KeyCode::Char(' ') | KeyCode::Enter => {
+                        if player.shoot() {
+                            audio.play("pew")
+                        }
+                    }
                     KeyCode::Esc | KeyCode::Char('q') => {
                         audio.play("lose");
                         break 'gameloop;
@@ -59,6 +73,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
+
+        player.update(delta);
 
         player.draw(&mut current_frame);
         let _ = render_tx.send(current_frame);
